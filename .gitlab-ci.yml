@@ -30,15 +30,107 @@ include:
     inputs:
       ocudu_path: $[[ inputs.ocudu_path ]]
       ocudu_ref: $[[ inputs.ocudu_ref ]]
+  - local: .gitlab/ci-shared/versions.yml
 
 variables:
   OCUDU_REGISTRY_URI: ${CI_TEMPLATE_REGISTRY_HOST}/$[[ inputs.ocudu_path ]]
 
 stages:
   - ci
+  - static
   - test
   - build
+  - publish
+  - release
 
 headers:
   stage: ci
   extends: .headers
+
+pkg_docker_version_changed:
+  stage: static
+  rules:
+    - if: $ON_MR
+      changes:
+        paths:
+          - debian_packaging/packaging_docker/**/*
+  image: alpine:3.16.0 # sh entrypoint
+  before_script:
+    - apk add git
+    - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME --depth 20
+  script:
+    - NEW_VERSION=$(cat .gitlab/ci-shared/versions.yml | grep UBUNTU_PACKAGING_VERSION | cut -d'"' -f2)
+    - git checkout $CI_MERGE_REQUEST_DIFF_BASE_SHA
+    - OLD_VERSION=$(cat .gitlab/ci-shared/versions.yml | grep UBUNTU_PACKAGING_VERSION | cut -d'"' -f2) || exit 0
+    - |
+      echo "OLD version: $OLD_VERSION -- NEW version: $NEW_VERSION"
+    - |
+      [ "$OLD_VERSION" = "$NEW_VERSION" ] && exit 1 || exit 0
+
+.pkg-docker:
+  extends: .docker-builder
+  before_script:
+    - |
+      export NAME=ubuntu_${OS_VERSION}_img_pkg
+      export CONTEXT=debian_packaging/packaging_docker
+      export BUILD_ARGS="distro_version=$OS_VERSION"
+      export VERSION=$UBUNTU_PACKAGING_VERSION
+  parallel:
+    matrix:
+      - OS_VERSION: "22.04"
+      - OS_VERSION: "24.04"
+      - OS_VERSION: "25.04"
+      - OS_VERSION: "25.10"
+
+build docker:
+  stage: static
+  extends: .pkg-docker
+  rules:
+    - if: $ON_MR
+      changes: &docker_changes
+        paths: 
+          - debian_packaging/packaging_docker/**/*
+          - .gitlab/ci-shared/versions.yml
+          - .gitlab-ci.yml
+  variables:
+    MODE: build
+
+publish docker:
+  stage: publish
+  extends: .pkg-docker
+  rules:
+    - if: $ON_DEFAULT_BRANCH
+      changes:
+        <<: *docker_changes
+        compare_to: refs/tags/latest
+    - if: $ON_MR
+      changes:
+        <<: *docker_changes
+      when: manual
+      allow_failure: true
+  variables:
+    MODE: publish
+
+create-incremental-tag:
+  extends: .create-tag
+  stage: release
+  rules:
+    - if: $ON_DEFAULT_BRANCH
+      changes:
+        <<: *docker_changes
+        compare_to: refs/tags/latest
+  script:
+    - |
+      latest_number_tag=$(git tag --sort=version:refname | grep -E '^[0-9]+$' | tail -1)
+      new_tag="$((latest_number_tag + 1))"
+    - create_tag $new_tag
+    - notify_created_tag $new_tag
+
+create-latest-tag:
+  extends: .create-tag
+  stage: release
+  rules:
+    - if: $ON_DEFAULT_BRANCH
+  script:
+    - delete_tag_if_exist latest
+    - create_tag latest

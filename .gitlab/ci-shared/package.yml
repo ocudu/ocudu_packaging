@@ -1,0 +1,42 @@
+include:
+  - local: .gitlab/ci-shared/versions.yml
+
+.check packaging ubuntu images:
+  extends: .check image exists for all supported ubuntu versions
+  script:
+    - check_if_image_exists ${CR_REGISTRY_URI}/ocudu/ocudu_packaging/ubuntu_ _img_pkg:$UBUNTU_PACKAGING_VERSION
+
+.deb-package:
+  image: ${CR_REGISTRY_URI}/ocudu/ocudu_packaging/ubuntu_${OS_VERSION}_img_pkg:$UBUNTU_PACKAGING_VERSION
+  variables:
+    OS_VERSION: "22.04"
+    REPO_URL: $CI_REPOSITORY_URL
+    REFERENCE: $CI_COMMIT_SHA
+    PROJECT_NAME: $CI_PROJECT_NAME
+    RELEASE_VERSION: "0.1"
+    MINOR_VERSION: "1"
+    # Internal
+    GIT_STRATEGY: none
+  script:
+    - make_orig_tarball.sh $REPO_URL $REFERENCE $PROJECT_NAME $RELEASE_VERSION
+    - package.sh $PROJECT_NAME $RELEASE_VERSION $MINOR_VERSION
+    - dpkg.sh $PROJECT_NAME $RELEASE_VERSION $MINOR_VERSION
+    - mv ~/build-area/${PROJECT_NAME}_${RELEASE_VERSION}/minor_v${MINOR_VERSION}/${PROJECT_NAME}_${RELEASE_VERSION}-0ubuntu1ppa${MINOR_VERSION}~${OS_VERSION}_amd64.deb ${CI_PROJECT_DIR}/
+  artifacts:
+    paths:
+      - ${PROJECT_NAME}_${RELEASE_VERSION}-0ubuntu1ppa${MINOR_VERSION}~${OS_VERSION}_amd64.deb
+    when: on_success
+    expire_in: "1 day"
+
+.deb-install:
+  image: ubuntu:$OS_VERSION
+  variables:
+    OS_VERSION: "22.04"
+    PROJECT_NAME: $CI_PROJECT_NAME
+    RELEASE_VERSION: "0.1"
+    MINOR_VERSION: "1"
+    # Internal
+    GIT_STRATEGY: none
+  before_script:
+    - apt update
+    - DEBIAN_FRONTEND='noninteractive' TZ='Europe/London' apt install ./${PROJECT_NAME}_${RELEASE_VERSION}-0ubuntu1ppa${MINOR_VERSION}~${OS_VERSION}_amd64.deb -y

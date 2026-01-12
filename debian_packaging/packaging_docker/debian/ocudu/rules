@@ -1,0 +1,31 @@
+#!/usr/bin/make -f
+# Uncomment this to turn on verbose mode.
+# export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+# Remove following compiler options causing problems with static variables intialization.
+export DEB_CXXFLAGS_MAINT_STRIP=-flto=auto -ffat-lto-objects
+
+%:
+	dh $@ --parallel
+
+override_dh_shlibdeps:
+	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
+
+override_dh_auto_configure:
+	dh_auto_configure --buildsystem=cmake -- $(extraopts) $(CEPH_EXTRA_CMAKE_ARGS) -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTING=Off -DENABLE_WERROR=Off
+
+override_dh_auto_test:
+	# skip executing tests
+
+override_dh_dwz:
+	dwz_version=$$(dwz --version \
+		| grep -Eo '[0-9]+(\.[0-9]+)*' \
+		| head -1); \
+	if dpkg --compare-versions "$$dwz_version" ge "0.15"; then \
+	  dh_dwz --no-dwz-multifile -- -j1; \
+	else \
+	  dh_dwz --no-dwz-multifile; \
+	fi

@@ -1,0 +1,6 @@
+ocudu (26.01-0ubuntu1ppa1~25.04) plucky; urgency=medium
+
+  * Initial release.
+  * Update to ocudu 26.01 with minor version 1 (Ubuntu 25.04)
+
+ -- MAINTAINER <pedro@srs.io>  Fri, 09 Jan 2026 13:56:41 +0000

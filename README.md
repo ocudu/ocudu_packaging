@@ -1,93 +1,216 @@
-# Ocudu Packaging
+# Debian Packaging
 
+This repository contains packaging helper scripts for creating debian packages.
 
+If you wish to upload the packages, you will need to have previously
+configured your GPG keys.
 
-## Getting started
+## TL;DR
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+```bash
+PACKAGING_URL=https://gitlab.com/ocudu/ocudu.git
+PACKAGING_REF=release_26_04
+PACKAGING_NAME=ocudu
+PACKAGING_VERSION="26.04"
+PACKAGING_MINOR="1"
+PACKAGING_TEST_CMD="gnb --version"
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+# Making the original tarball and preparing the sources
+./debian_packaging/scripts/package_all.sh ${PACKAGING_URL} ${PACKAGING_REF} ${PACKAGING_NAME} ${PACKAGING_VERSION} ${PACKAGING_MINOR}
 
-## Add your files
+# Building Testing Deb Stage. **Not to advance if this fails**
+./debian_packaging/scripts/dpkg_all.sh ${PACKAGING_NAME} ${PACKAGING_VERSION} ${PACKAGING_MINOR}
 
-* [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+# Installing the generated deb. **Not to advance if this fails**
+./debian_packaging/scripts/deb_all.sh ${PACKAGING_NAME} ${PACKAGING_VERSION} ${PACKAGING_MINOR} "${PACKAGING_TEST_CMD}"
 
+# Uploading generated deb to testing repository
+# Go to the Uploading Stage section
+
+# Test packages in testing repository
+./debian_packaging/scripts/ppa_all.sh ${PACKAGING_NAME} ${PACKAGING_VERSION} ${PACKAGING_MINOR} "${PACKAGING_TEST_CMD}"
+
+# Moving packages from testing repository to final one
+# Go to the Finalizing Stage section
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/ocudu/ocudu_packaging.git
-git branch -M main
-git push -uf origin main
+
+## Packaging Stage
+
+### Steps
+
+#### Preparing for packaging
+
+First, create and run the packaging docker by doing:
+
+```bash
+./debian_packaging/packaging_docker/run-pkg-docker.sh 25.04
 ```
 
-## Integrate with your tools
+Note, that this will try to mount a build-area, ssh keys and GPG keys.
 
-* [Set up project integrations](https://gitlab.com/ocudu/ocudu_packaging/-/settings/integrations)
+**Following steps will run inside the container!**
 
-## Collaborate with your team
+#### Making the original tarball
 
-* [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+Before packaging, you need to make the original tarball for this release.
 
-## Test and Deploy
+Before doing this, make sure that the `debian/changelog` is correct (you might have to make a commit after doing this).
+Once that is done, run the `make_orig_tarball` script by giving it as argument the downloaded repository, the commit (or tag) to package, and the packaging name and version.
 
-Use the built-in continuous integration in GitLab.
+E.g, for release `26.04.1`, do:
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+```bash
+make_orig_tarball.sh https://gitlab.com/ocudu/ocudu.git release_26_04_1 ocudu 26.04.1
+```
 
-***
+#### Preparing the sources
 
-# Editing this README
+Before doing the actual packaging, you will need to prepare the sources by running the `package.sh` script.
+The `minor` version (aka `pkgrel` or *package release number*) should be `1`, unless you need to bump it to fix packaging mistakes for the same software version.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+Before running this, make sure that you edit the Ubuntu versions that you wish to target.
+See "<https://ubuntu.com/about/release-cycle>" and "<https://wiki.ubuntu.com/Releases>", to see which Ubuntu versions are currently supported.
 
-## Suggestions for a good README
+E.g, for release `26.04.1`, do:
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+```bash
+package.sh ocudu 26.04.1 1
+```
 
-## Name
-Choose a self-explaining name for your project.
+After preparing the packaging, go to the folders in `build-area/<name>_<release>/minor_v<minor_version>/`
+and double check whether everything is correct (e.g. on the `debian/changelog`).
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+### All Ubuntu versions
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+Previous steps can be automatically executed for all supported Ubuntu versions by running:
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+```bash
+./debian_packaging/scripts/package_all.sh https://gitlab.com/ocudu/ocudu.git release_26_04_1 ocudu 26.04.1 1
+```
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## Building Testing Deb Stage
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### Steps
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+#### Preparing for build a testing deb
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+Follow instructions in `Preparing for packaging` section
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+**Following steps will run inside the container!**
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+### Building a testing deb
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Before uploading, try to make sure the build is successful by running:
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+```bash
+dpkg.sh ocudu 26.04.1 1
+```
 
-## License
-For open source projects, say how it is licensed.
+This will run `dpkg-buildpackage -us -uc`.
+This allows you to see any compilation errors or other errors in the `debian/` folder.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+*Do not upload the package if this fails.*
+Delete any commits in the OCUDU packaging repos, and the files related to this build in this area and fix the issue.
+Once that is done, test the `.deb`.
+
+### All Ubuntu versions
+
+Previous steps can be automatically executed for all supported Ubuntu versions by running:
+
+```bash
+./debian_packaging/scripts/dpkg_all.sh ocudu 26.04.1 1
+```
+
+## Installing the generated deb
+
+### Steps
+
+#### Preparing
+
+First, create and run the install docker by doing:
+
+```bash
+./debian_packaging/install_docker/run-deb-docker.sh 25.04 ocudu 26.04.1 1 'gnb --version'
+```
+
+This will execute, inside the container:
+
+```bash
+apt update
+DEBIAN_FRONTEND='noninteractive' TZ='Europe/London' apt install $deb_name -y 
+```
+
+And your installed binary would be run with the provided command_
+
+```bash
+gnb --version
+```
+
+*Do not upload the package if this fails.*
+
+### All Ubuntu versions
+
+Previous steps can be automatically executed for all supported Ubuntu versions by running:
+
+```bash
+./debian_packaging/scripts/deb_all.sh ocudu 26.04.1 1 'gnb --version'
+```
+
+## Uploading Stage
+
+Finally, after all testing as passed, go inside the packaging docker and create and sign the package for uploading:
+
+```bash
+/usr/bin/gpg-agent 
+debuild -S
+```
+
+If you want to use a key that is not the default for your user, use:
+
+```bash
+debuild -S -kpedro@srs.io
+```
+
+Finally, upload to the launchpad testing ppa:
+
+```bash
+dput ppa:ocudu/ocudu-testing <ocudu_changes_file>_source.changes
+```
+
+## Installing packages from testing repository
+
+### Steps
+
+#### Preparing
+
+First, create and run the ppa docker by doing:
+
+```bash
+./debian_packaging/install_docker/run-ppa-docker.sh 25.04 ocudu 26.04.1 1 'gnb --version'
+```
+
+This will install your package in the testing repo by doing:
+
+```bash
+add-apt-repository ppa:softwareradiosystems/$name-testing -y && 
+      apt update -y && 
+      apt install $name -y
+```
+
+After that, your installed binary will be tested by running the provided command:
+
+```bash
+gnb --version"
+```
+
+### All Ubuntu versions
+
+Previous steps can be automatically executed for all supported Ubuntu versions by running:
+
+```bash
+./debian_packaging/scripts/ppa_all.sh ocudu 26.04.1 1 'gnb --version'
+```
+
+## Finalizing Stage
+
+Once you are done with testing, copy the packages to the releases PPA using the Launchpad interface.

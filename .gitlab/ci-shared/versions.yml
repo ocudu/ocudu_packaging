@@ -1,0 +1,2 @@
+variables:
+  UBUNTU_PACKAGING_VERSION: "0.1"
