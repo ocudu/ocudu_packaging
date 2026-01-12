@@ -113,27 +113,3 @@ publish docker:
       allow_failure: true
   variables:
     MODE: publish
-
-create-incremental-tag:
-  extends: .create-tag
-  stage: release
-  rules:
-    - if: $ON_DEFAULT_BRANCH
-      changes:
-        <<: *docker_changes
-        compare_to: refs/tags/latest
-  script:
-    - |
-      latest_number_tag=$(git tag --sort=version:refname | grep -E '^[0-9]+$' | tail -1)
-      new_tag="$((latest_number_tag + 1))"
-    - create_tag $new_tag
-    - notify_created_tag $new_tag
-
-create-latest-tag:
-  extends: .create-tag
-  stage: release
-  rules:
-    - if: $ON_DEFAULT_BRANCH
-  script:
-    - delete_tag_if_exist latest
-    - create_tag latest
