@@ -12,10 +12,10 @@ include:
 .check packaging ubuntu images:
   extends: .check image exists for all supported ubuntu versions
   script:
-    - check_if_image_exists ${CR_REGISTRY_URI}/ocudu/ocudu_packaging/ubuntu_ _img_pkg:$UBUNTU_PACKAGING_VERSION
+    - check_if_image_exists ${OCUDU_PACKAGING_REGISTRY_URI}/ubuntu_ _img_pkg:$UBUNTU_PACKAGING_VERSION
 
 .deb-package:
-  image: ${CR_REGISTRY_URI}/ocudu/ocudu_packaging/ubuntu_${OS_VERSION}_img_pkg:$UBUNTU_PACKAGING_VERSION
+  image: ${OCUDU_PACKAGING_REGISTRY_URI}/ubuntu_${OS_VERSION}_img_pkg:$UBUNTU_PACKAGING_VERSION
   variables:
     OS_VERSION: "22.04"
     REPO_URL: $CI_REPOSITORY_URL
