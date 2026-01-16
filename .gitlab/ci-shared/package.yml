@@ -19,13 +19,13 @@ include:
   variables:
     OS_VERSION: "22.04"
     REPO_URL: $CI_REPOSITORY_URL
-    REFERENCE: $CI_COMMIT_SHA
     PROJECT_NAME: $CI_PROJECT_NAME
     RELEASE_VERSION: "0.1"
     MINOR_VERSION: "1"
-    # Internal
     GIT_STRATEGY: none
+    CI_DEBUG_TRACE: "true"
   script:
+    - REFERENCE=${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA:-$CI_COMMIT_SHA}
     - make_orig_tarball.sh $REPO_URL $REFERENCE $PROJECT_NAME $RELEASE_VERSION
     - package.sh $PROJECT_NAME $RELEASE_VERSION $MINOR_VERSION
     - dpkg.sh $PROJECT_NAME $RELEASE_VERSION $MINOR_VERSION
@@ -43,7 +43,6 @@ include:
     PROJECT_NAME: $CI_PROJECT_NAME
     RELEASE_VERSION: "0.1"
     MINOR_VERSION: "1"
-    # Internal
     GIT_STRATEGY: none
   before_script:
     - apt update
