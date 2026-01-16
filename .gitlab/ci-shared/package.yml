@@ -9,11 +9,6 @@
 include:
   - local: .gitlab/ci-shared/versions.yml
 
-.check packaging ubuntu images:
-  extends: .check image exists for all supported ubuntu versions
-  script:
-    - check_if_image_exists ${OCUDU_PACKAGING_REGISTRY_URI}/ubuntu_ _img_pkg:$UBUNTU_PACKAGING_VERSION
-
 .deb-package:
   image: ${OCUDU_PACKAGING_REGISTRY_URI}/ubuntu_${OS_VERSION}_img_pkg:$UBUNTU_PACKAGING_VERSION
   variables:
