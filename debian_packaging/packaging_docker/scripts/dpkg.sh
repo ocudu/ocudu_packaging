@@ -14,7 +14,7 @@
 # This script assumes that the sources were preprepared a priori.
 # A separate script should be used to create it.
 #
-# Run like this: ./dpkg.sh <name> <version> <minor>
+# Run like this: ./dpkg.sh <name> <version> <minor> [<ubuntu-version> [<ubuntu-name>]]
 # E.g.: ./dpkg.sh ocudu 26.04.1 1
 #
 set -e
@@ -24,9 +24,9 @@ set -e
 main() {
 
   # Check number of args
-  if (($# != 3)); then
+  if [ "$#" -lt 3 ] || [ "$#" -gt 5 ]; then
     echo >&2 "Illegal number of parameters"
-    echo >&2 "Run like this: \"./dpkg.sh <name> <version> <minor>\""
+    echo >&2 "Run like this: \"./dpkg.sh <name> <version> <minor> [<ubuntu-version> [<ubuntu-name>]]\""
     exit 1
   fi
 
@@ -34,8 +34,8 @@ main() {
   local release=$2
   local minor_version=$3
 
-  local ubuntu_num=$VERSION_ID
-  local ubuntu_name=$VERSION_CODENAME
+  local ubuntu_num="${4:-$VERSION_ID}"
+  local ubuntu_name="${5:-$VERSION_CODENAME}"
 
   local build_dir=~/build-area/${name}_$release/minor_v$minor_version/$ubuntu_name
   local src_dir=$build_dir/$name

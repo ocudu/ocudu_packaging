@@ -14,7 +14,7 @@
 # This script assumes that an original tarball has been created a priori,
 # A separate script should be used to create it.
 #
-# Run like this: ./package.sh <name> <version> <minor> [<ubuntu-version> <ubuntu-name>]
+# Run like this: ./package.sh <name> <version> <minor> [<ubuntu-version> [<ubuntu-name>]]
 # E.g.: ./package.sh ocudu 26.04.1 1
 # E.g.: ./package.sh ocudu 26.04.1 1 25.04 plucky
 #
@@ -25,9 +25,9 @@ set -e
 main() {
 
   # Check number of args
-  if [ $# != 3 ] && [ $# != 5 ]; then
+  if [ "$#" -lt 3 ] || [ "$#" -gt 5 ]; then
     echo >&2 "Illegal number of parameters"
-    echo >&2 "Run like this: \"./package.sh <name> <version> <minor> [<ubuntu-version> <ubuntu-name>]\""
+    echo >&2 "Run like this: \"./package.sh <name> <version> <minor> [<ubuntu-version> [<ubuntu-name>]]\""
     exit 1
   fi
 
