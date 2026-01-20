@@ -29,6 +29,9 @@ include:
     file: .gitlab/ci-shared/docker.yml
   - project: $[[ inputs.ocudu_path ]]
     ref: $[[ inputs.ocudu_ref ]]
+    file: .gitlab/ci-shared/version_check.yml
+  - project: $[[ inputs.ocudu_path ]]
+    ref: $[[ inputs.ocudu_ref ]]
     file: .gitlab/ci-shared/gitlab_settings/.gitlab-ci.yml
     inputs:
       ocudu_path: $[[ inputs.ocudu_path ]]
@@ -50,25 +53,16 @@ headers:
   stage: ci
   extends: .headers
 
-pkg_docker_version_changed:
+ubuntu packaging version changed:
+  extends: .version increased
   stage: static
   rules:
     - if: $ON_MR
       changes:
-        paths:
-          - debian_packaging/packaging_docker/**/*
-  image: alpine:3.16.0 # sh entrypoint
-  before_script:
-    - apk add git
-    - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME --depth 20
-  script:
-    - NEW_VERSION=$(cat .gitlab/ci-shared/versions.yml | grep UBUNTU_PACKAGING_VERSION | cut -d'"' -f2)
-    - git checkout $CI_MERGE_REQUEST_DIFF_BASE_SHA
-    - OLD_VERSION=$(cat .gitlab/ci-shared/versions.yml | grep UBUNTU_PACKAGING_VERSION | cut -d'"' -f2) || exit 0
-    - |
-      echo "OLD version: $OLD_VERSION -- NEW version: $NEW_VERSION"
-    - |
-      [ "$OLD_VERSION" = "$NEW_VERSION" ] && exit 1 || exit 0
+        - debian_packaging/packaging_docker/**/*
+  variables:
+    FILE_PATH: .gitlab/ci-shared/versions.yml
+    VARIABLE_NAME: UBUNTU_PACKAGING_VERSION
 
 .pkg-docker:
   extends: .docker-builder
