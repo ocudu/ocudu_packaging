@@ -108,7 +108,7 @@ publish docker:
     - if: $ON_DEFAULT_BRANCH
       changes:
         <<: *docker_changes
-        compare_to: refs/tags/latest
+        compare_to: $CI_COMMIT_BEFORE_SHA
     - if: $ON_MR
       changes:
         <<: *docker_changes
