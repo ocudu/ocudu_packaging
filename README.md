@@ -192,8 +192,8 @@ First, create and run the ppa docker by doing:
 This will install your package in the testing repo by doing:
 
 ```bash
-add-apt-repository ppa:softwareradiosystems/$name-testing -y && 
-      apt update -y && 
+add-apt-repository ppa:ocudu/$name-testing -y &&
+      apt update -y &&
       apt install $name -y
 ```
 
