@@ -84,8 +84,7 @@ pkg_docker_version_changed:
       - OS_VERSION: "24.04"
       - OS_VERSION: "25.04"
       # - OS_VERSION: "25.10"             # disabled, see comment below
-      - OS_VERSION: "questing-20250830"   # temporary alternative for 25.10, see comment below
-      # Since version 20251007 of Ubuntu 25.10 a Rust implemntation of coreutils (rust-coreutils and coreutils-from-uutils)
+      # Since version 20251007 of Ubuntu 25.10 a Rust implementation of coreutils (rust-coreutils and coreutils-from-uutils)
       # is used instead of the traditional version from GNU (coreutils-from-gnu). A bug in the Rust coreutils
       # causes a permission error during startup of the container (as the packing is run as unprivileged user).
 
