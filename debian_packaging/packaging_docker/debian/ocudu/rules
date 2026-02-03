@@ -27,5 +27,5 @@ override_dh_dwz:
 	if dpkg --compare-versions "$$dwz_version" ge "0.15"; then \
 	  dh_dwz --no-dwz-multifile -- -j1; \
 	else \
-	  dh_dwz --no-dwz-multifile; \
+	  dh_dwz --no-dwz-multifile -- --max-die-limit none; \
 	fi
