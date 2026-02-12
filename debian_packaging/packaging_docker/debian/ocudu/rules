@@ -25,7 +25,7 @@ override_dh_dwz:
 		| grep -Eo '[0-9]+(\.[0-9]+)*' \
 		| head -1); \
 	if dpkg --compare-versions "$$dwz_version" ge "0.15"; then \
-	  dh_dwz --no-dwz-multifile -- -j1; \
+	  dh_dwz --no-dwz-multifile -- --max-die-limit none -j1; \
 	else \
 	  dh_dwz --no-dwz-multifile -- --max-die-limit none; \
 	fi
