@@ -76,11 +76,8 @@ ubuntu packaging version changed:
     matrix:
       - OS_VERSION: "22.04"
       - OS_VERSION: "24.04"
-      # - OS_VERSION: "25.10"             # disabled, see comment below
-      # Since version 20251007 of Ubuntu 25.10 a Rust implementation of coreutils (rust-coreutils and coreutils-from-uutils)
-      # is used instead of the traditional version from GNU (coreutils-from-gnu). A bug in the Rust coreutils
-      # causes a permission error during startup of the container (as the packing is run as unprivileged user).
       - OS_VERSION: "26.04"
+      - OS_VERSION: "26.10"
 
 build docker:
   stage: static
