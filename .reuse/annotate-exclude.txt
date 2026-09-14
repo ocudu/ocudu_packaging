@@ -1,0 +1,11 @@
+\.git/
+\.reuse/
+REUSE\.toml$
+\.md$
+LICENSE$
+^LICENSES/
+debian/ocudu/changelog$
+debian/ocudu/compat$
+debian/ocudu/control$
+debian/ocudu/copyright$
+debian/ocudu/source/format$

@@ -1,0 +1,5 @@
+TEMPLATE_HDR_DEFAULT=header-default
+COPYRIGHT_PREFIX=spdx-string-c
+COPYRIGHT_YEAR=2021-2026
+COPYRIGHT_HOLDER=Software Radio Systems Limited
+LICENSE=BSD-3-Clause-Open-MPI

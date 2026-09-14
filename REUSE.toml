@@ -1,0 +1,17 @@
+version = 1
+
+[[annotations]]
+path = ["README.md"]
+SPDX-FileCopyrightText = "Copyright (C) 2021-2026 Software Radio Systems Limited"
+SPDX-License-Identifier = "BSD-3-Clause-Open-MPI"
+
+[[annotations]]
+path = [
+    "debian_packaging/packaging_docker/debian/ocudu/changelog",
+    "debian_packaging/packaging_docker/debian/ocudu/compat",
+    "debian_packaging/packaging_docker/debian/ocudu/control",
+    "debian_packaging/packaging_docker/debian/ocudu/copyright",
+    "debian_packaging/packaging_docker/debian/ocudu/source/format",
+]
+SPDX-FileCopyrightText = "Copyright (C) 2021-2026 Software Radio Systems Limited"
+SPDX-License-Identifier = "BSD-3-Clause-Open-MPI"
